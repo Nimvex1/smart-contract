@@ -52,6 +52,11 @@ mirror-of-record with `package.json`.
 - `test/FormalChecks.t.sol`: Halmos-convention `check_` properties (package-id
   commitment, quorum clamping, expiry finality) — compile-gated by forge,
   executable under halmos.
+- `contracts/DAOStaking.sol`: single-pool staking with fixed-duration,
+  pre-funded reward epochs (owner = timelock). Liability bounded by funding
+  (no mint); leftover rolls over; durations change only between epochs; owner
+  can never move user stakes. Staked tokens earn but do not vote (pool never
+  delegates).
 
 ### Fixed
 

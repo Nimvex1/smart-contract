@@ -33,6 +33,15 @@ duration, revocability), `VestedClaimed` (payouts to beneficiaries),
 `VestingRevoked` (unvested returned). Alert on revocations — legitimate ones
 trace to a known offboarding; anything else is suspect.
 
+## Staking (`DAOStaking`)
+
+`Staked` / `Withdrawn` (principal flows), `RewardPaid` (yield claims),
+`RewardAdded` (epoch funded: amount, rate, finish — reconcile against the
+treasury transfer that preceded it), `RewardsDurationUpdated`,
+`Recovered` (stray-token rescue; must never reference the staking token).
+Alert on `RewardAdded` with no matching treasury funding, and on any
+`Recovered` event (verify the token is genuinely stray).
+
 ## Administration
 
 | Event | Watch for |

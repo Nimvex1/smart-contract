@@ -128,4 +128,20 @@
   exact and safe (freshly measured uint delta, not a balance race), and the
   `<=`-rewrite would obscure intent — accepted as a documented false positive
   alongside the `costly-loop` entry above. Slither remains at pre-existing
-  families + these two logged INFOs.
+  families + these two logged INFOs. Same treatment applied to
+  `DAOStaking.rewardRate == 0` (dust-epoch guard, exact and safe) and the
+  staking timestamp family (epoch accounting IS time-based by definition).
+
+## 17. Four staking test failures, zero contract bugs (new primitive)
+
+- Reward assertions of exactly 3,000e18 failed by ~1e6 wei: `rewardRate`
+  truncates on division (`3000e18/30days`), so epochs pay (rate × duration),
+  not the headline amount. Fix: `assertApproxEqAbs` with 1e12 tolerance and
+  event expectations computed from `earned()`, never hard-coded round numbers.
+- `vm.prank` + view-call ordering: reading `rewardRate()` for event args
+  consumed the prank, failing with `OwnableUnauthorizedAccount`. Fix: read all
+  expectations before pranking (same lesson as log #9, new disguise).
+- Fuzz `withdraw(0)` hit the by-design `ZeroAmount` revert: bounded `b` to
+  ≥1. Lesson: fuzz domains must exclude documented revert paths or assert them
+  explicitly — a "failure" on a specified revert is a test bug, three times
+  out of three in this suite.

@@ -14,7 +14,7 @@ execution), `DAOReadHub` (one-RPC proposal/package/treasury cards),
 `DAOStreamVesting` (linear vesting with cliff and revocation),
 `ProposalBuilder` (pure governance-payload library),
 `Deploy.s.sol` + `Renounce.s.sol` + `Delegate.s.sol` scripts, three runnable
-end-to-end examples, 142 Foundry tests (unit, fuzz, invariant,
+end-to-end examples, 155 Foundry tests (unit, fuzz, invariant,
 malicious-token, governance-attack),
 integration/cast/event/deployment guides, runbook, ADRs, and engineering log.
 

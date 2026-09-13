@@ -167,6 +167,12 @@ tokens to the funder and can never claw back vested pay) hold no DAO roles and
 cannot move treasury funds. A vesting schedule's revoker is its funding
 `msg.sender`, never a global admin.
 
+`DAOStaking` is timelock-owned, so its privileged surface is governance-gated
+by construction: the owner can fund epochs, retarget durations between epochs,
+and rescue non-staked tokens — and cannot move user stakes (no such function
+exists). Stakers accept suspended voting power while staked (the pool never
+delegates); principal is always withdrawable by its owner.
+
 ## Audit posture
 
 This repository contains extensive adversarial tests (fuzzing, invariants,

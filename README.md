@@ -12,6 +12,7 @@ Solidity 0.8.24 / OpenZeppelin 5.1.0 / Foundry v1.8.1 / MIT. Not formally audite
 | Treasury ops | `DAOTreasuryExecutionEngine`: tiered quarantine, expiry horizon, predecessor ordering, destination allowlist, native reserve floor, atomic batch execution, permissionless stuck-package cleanup, curated asset registry |
 | Frontend-ready reads | `DAOReadHub`: one-RPC proposal cards, package readiness cards, treasury snapshots, schedule previews, timelock status |
 | Tokenomics | `DAOStreamVesting`: standalone linear vesting with cliff, permissionless claims, funder-only revocation of unvested |
+| Staking | `DAOStaking`: pre-funded reward epochs, owner-is-timelock, no seizure of stakes (staked tokens earn, don't vote) |
 | Proposal UX | `ProposalBuilder`: pure library for treasury-payment, tier, allowlist, and floor payloads |
 | Deployment | `Deploy.s.sol` bootstrap with loud wiring assertions; `Renounce.s.sol` verified self-sovereignty step |
 | Examples | Runnable Flows A (treasury payment), B (config change), C (token distribution) in `test/Examples.t.sol` |
@@ -41,6 +42,7 @@ quorum governor**, a **multi-tier quarantined treasury execution engine** with
 | `contracts/DAOReadHub.sol` | Stateless view aggregator (no storage/roles/funds): one-RPC proposal cards, package readiness cards (executable flag, blocked-reason codes, ETA, predecessor flags), treasury snapshots, schedule previews, timelock status, timelock delay. |
 | `contracts/DAOStreamVesting.sol` | Standalone linear vesting with cliff and optional revocation (unvested returns to funder, vested stays claimable); no roles, no governance coupling. |
 | `contracts/ProposalBuilder.sol` | Pure library building treasury-payment, tier-config, allowlist, and reserve-floor governance payloads (inlined, no deployment). |
+| `contracts/DAOStaking.sol` | Single-pool staking: fixed-duration pre-funded epochs, timelock owner, bounded liability, owner can never move stakes. |
 | `contracts/DAODeploymentNotes.sol` | Secure bootstrap and role hand-off sequence (checklist form). |
 | `script/Deploy.s.sol` | Executable bootstrap deployment following the notes. |
 | `script/Renounce.s.sol` | Wiring-verified deployer-admin renunciation (fails loudly on misconfiguration; re-run proves sealed state). |
@@ -270,7 +272,7 @@ forge snapshot                      # gas snapshot (checked in CI)
 forge fmt --check                   # formatting (checked in CI)
 ```
 
-The suite (142 tests across 19 files) covers:
+The suite (155 tests across 20 files) covers:
 
 - **Unit** — token permits/checkpoints/burns; proposal lifecycle, snapshot safety,
   dynamic quorum regimes and boundary math, constructor validation, threshold
@@ -319,7 +321,8 @@ The suite (142 tests across 19 files) covers:
 | `Examples.t.sol` | 3 | — | — |
 | `TreasuryStorageLayout.t.sol` | 2 | — | — |
 | `HealthCheck.t.sol` | 4 | — | — |
-| **Total** | **118** | **19** | **5** |
+| `DAOStaking.t.sol` | 11 | 2 | — |
+| **Total** | **129** | **21** | **5** |
 
 Plus `test/FormalChecks.t.sol`: 3 Halmos-convention `check_` properties
 (package-id commitment, quorum clamping, expiry finality) — ignored by forge,

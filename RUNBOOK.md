@@ -44,7 +44,6 @@ try to out-pause it on-chain, rotate via the same proposal path, and rely on
 post-quarantine executability throughout.
 
 ## Keeper guidance: batch execution
-
 - **Chunk at ≤10 packages per `executePackages` call**, trivial calldata only
   per batch. Anchor (measured, `test_BatchScalesLinearlyForKeeperChunking`):
   approving + executing 10 simple packages totals ~2.4M gas — more than 10x
@@ -54,6 +53,17 @@ post-quarantine executability throughout.
   client-side rather than letting the batch revert on them.
 - On revert, retry entries individually to isolate the bad one, then re-batch
   the survivors.
+
+## Staking epoch funding
+
+- Fund each epoch with the two-package pattern (transfer then
+  `notifyRewardAmount` with predecessor ordering); verify `RewardAdded`
+  against the transfer amount — a mismatch means the epoch is mispriced.
+- Never schedule `notifyRewardAmount` without its funding transfer in the same
+  batch: it reverts (`RewardTooHigh`), which is safe but wastes a governance
+  cycle.
+- `setRewardsDuration` only takes effect between epochs; scheduling it
+  mid-epoch reverts (`PeriodActive`) by design, not malfunction.
 
 ## Suspicious governance activity
 

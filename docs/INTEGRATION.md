@@ -89,6 +89,23 @@ amount)`, (2) `vesting.create(...)` (the timelock must first approve the
 vesting contract to pull, which package 1 does). A multisig funder simply
 approves and calls `create` directly.
 
+## Staking lifecycle
+
+Deploy `DAOStaking(stakingToken, rewardsToken, timelock, duration)` with the
+timelock as owner, so every privileged action passes governance. Fund each
+epoch from the treasury: package 1 transfers reward tokens to the staking
+contract, package 2 (predecessor: package 1) calls `notifyRewardAmount` —
+leftover from a live epoch rolls over automatically, and underfunded epochs
+revert instead of stranding stakers. Users `stake` / `withdraw` / `getReward`
+/ `exit` directly; claims are permissionless pokes.
+
+Two facts frontends must surface before anyone stakes: (1) staked tokens earn
+but do not vote — the pool never delegates, so voting power pauses until
+withdrawal; (2) durations change only between epochs, so a live rate never
+shifts under stakers. External DeFi (lending, AMMs) is intentionally not built
+here: interact with audited protocols through allowlisted treasury packages
+instead.
+
 ## Token lifecycle
 
 `DAOGovernanceToken` is fixed-supply, minted once to the bootstrap recipient.
