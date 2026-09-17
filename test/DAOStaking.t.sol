@@ -139,8 +139,9 @@ contract DAOStakingTest is Test {
     }
 
     function test_NotifyReward_RevertsWhen_Undercollateralized() public {
+        uint256 required = 1_000e18;
         vm.prank(owner);
-        vm.expectRevert(DAOStaking.RewardTooHigh.selector);
+        vm.expectRevert(abi.encodeWithSelector(DAOStaking.InsufficientRewardBudget.selector, 0, required));
         staking.notifyRewardAmount(1_000e18); // nothing funded
     }
 
@@ -173,6 +174,29 @@ contract DAOStakingTest is Test {
         // Owner has no path to user stakes: balances untouched by every owner op.
         assertEq(staking.balanceOf(alice), 1_000e18);
         assertEq(staking.totalSupply(), 1_000e18);
+    }
+
+    function test_RecoverRewardToken_OnlySurplusAboveBudget() public {
+        vm.prank(alice);
+        staking.stake(1_000e18);
+        _fundEpoch(1_000e18);
+        vm.warp(block.timestamp + DURATION);
+        uint256 due = staking.earned(alice);
+
+        rewardsToken.mint(address(staking), 5e18);
+        vm.prank(owner);
+        staking.recoverERC20(address(rewardsToken), 5e18);
+        assertEq(rewardsToken.balanceOf(owner), 5e18);
+
+        vm.prank(owner);
+        vm.expectRevert(abi.encodeWithSelector(DAOStaking.RescueExceedsWithdrawable.selector, 0, 1));
+        staking.recoverERC20(address(rewardsToken), 1);
+        assertEq(staking.rewardBudget(), 1_000e18);
+
+        vm.prank(alice);
+        staking.getReward();
+        assertEq(rewardsToken.balanceOf(alice), due);
+        assertEq(staking.rewardBudget(), 1_000e18 - due);
     }
 
     function test_NoStakers_NoBackpay() public {
