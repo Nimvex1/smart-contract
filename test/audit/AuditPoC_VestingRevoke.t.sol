@@ -8,7 +8,10 @@ import {DAOStreamVesting} from "../../contracts/DAOStreamVesting.sol";
 
 contract VT is ERC20 {
     constructor() ERC20("V", "V") {}
-    function mint(address to, uint256 a) external { _mint(to, a); }
+
+    function mint(address to, uint256 a) external {
+        _mint(to, a);
+    }
 }
 
 /// @dev Regression tests for the revoke double-fraction bug.

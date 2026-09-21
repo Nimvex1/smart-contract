@@ -8,7 +8,10 @@ import {DAOStaking} from "../../contracts/DAOStaking.sol";
 
 contract T4 is ERC20 {
     constructor() ERC20("T", "T") {}
-    function mint(address to, uint256 a) external { _mint(to, a); }
+
+    function mint(address to, uint256 a) external {
+        _mint(to, a);
+    }
 }
 
 /// @dev FINDING: `rewardPerToken()` floors the accumulator, so the epoch payout is
@@ -24,10 +27,7 @@ contract T4 is ERC20 {
 contract AuditPoCStakingRounding is Test {
     uint256 internal constant DURATION = 30 days;
 
-    function _deploy(uint256 stake, uint256 reward)
-        internal
-        returns (DAOStaking s, T4 st, T4 rw, address owner)
-    {
+    function _deploy(uint256 stake, uint256 reward) internal returns (DAOStaking s, T4 st, T4 rw, address owner) {
         st = new T4();
         rw = new T4();
         owner = makeAddr("owner");
@@ -73,7 +73,7 @@ contract AuditPoCStakingRounding is Test {
         uint256 reward = 1_000_000e18;
 
         for (uint256 i = 0; i < stakes.length; ++i) {
-            (DAOStaking s,,, ) = _deploy(stakes[i], reward);
+            (DAOStaking s,,,) = _deploy(stakes[i], reward);
             uint256 rate = s.rewardRate();
             vm.warp(block.timestamp + DURATION + 1);
             uint256 got = s.earned(address(this));

@@ -8,7 +8,10 @@ import {DAOStaking} from "../../contracts/DAOStaking.sol";
 
 contract Mintable is ERC20 {
     constructor(string memory n, string memory s) ERC20(n, s) {}
-    function mint(address to, uint256 amount) external { _mint(to, amount); }
+
+    function mint(address to, uint256 amount) external {
+        _mint(to, amount);
+    }
 }
 
 /// @dev Audit PoCs for DAOStaking. Deterministic, emitted numbers.
@@ -141,9 +144,7 @@ contract AuditPoCStaking is Test {
 
         assertEq(staking.rewardBudget() - r, r, "ledger grows by exactly the new funding");
         assertLe(
-            accrued + staking.rewardRate() * DURATION,
-            2 * r,
-            "epoch never promises more than the total funded amount"
+            accrued + staking.rewardRate() * DURATION, 2 * r, "epoch never promises more than the total funded amount"
         );
         emit log_string("KILLED: rollover accounting is conservative, not over-promising");
     }
