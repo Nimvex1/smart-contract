@@ -121,6 +121,19 @@ contract DAOStreamVestingTest is Test {
         vesting.revoke(id);
 
         assertEq(token.balanceOf(funder) - funderBefore, 12_000e18 - vestedBefore, "unvested returns to funder");
+
+        // Revocation must freeze vesting AT THE REVOCATION POINT, not merely at the
+        // end of the schedule. Asserting only after `warp(start + DURATION + 1)` used
+        // to hide a double-fraction bug in `_vested`: the elapsed-time fraction was
+        // re-applied to the already-frozen `totalAmount`, so the curve dipped and
+        // re-vested through the whole remaining window. Pin the interim window too.
+        assertEq(vesting.vested(id), vestedBefore, "vested frozen in the same block as revoke");
+        assertEq(vesting.claimable(id), vestedBefore, "claimable frozen in the same block as revoke");
+
+        vm.warp(uint256(start) + (uint256(DURATION) * 3) / 4);
+        assertEq(vesting.vested(id), vestedBefore, "revocation freezes vesting mid-window");
+        assertEq(vesting.claimable(id), vestedBefore, "claimable stays flat mid-window");
+
         vm.warp(uint256(start) + DURATION + 1);
         assertEq(vesting.vested(id), vestedBefore, "revocation freezes vesting");
         vesting.claim(id);

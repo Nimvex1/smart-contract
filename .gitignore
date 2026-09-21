@@ -5,3 +5,4 @@ broadcast/
 node_modules/
 .opencode/
 lib/forge-std/.git
+.workbuddy-ai/

@@ -110,8 +110,12 @@ contract DAOStreamVesting is ReentrancyGuard {
 
     /// @notice Revoke a revocable schedule: vested stays claimable, unvested returns.
     /// @dev Only the original funder. Revocation freezes vesting at the current
-    ///      timestamp — `vested()` caps at the revocation point implicitly because
-    ///      `totalAmount` is reduced to the vested amount below.
+    ///      timestamp: `totalAmount` is reduced to the vested amount AND `revoked`
+    ///      is set, which makes `_vested` return that frozen amount unconditionally.
+    ///      Both halves are required — reducing `totalAmount` alone left
+    ///      `start`/`duration` in place, so `_vested` re-applied the elapsed-time
+    ///      fraction to an already-fractional amount and the curve re-vested after
+    ///      revocation (AUDIT: vesting-revoke-double-fraction).
     function revoke(uint256 scheduleId) external nonReentrant {
         Schedule storage s = _schedule(scheduleId);
         if (!s.revocable) revert NotRevocable(scheduleId);
@@ -154,7 +158,11 @@ contract DAOStreamVesting is ReentrancyGuard {
 
     /// @dev Linear release between `start` and `start + duration`, gated on `cliff`.
     ///      Before the cliff nothing is vested; at/after the end everything is.
+    ///      A revoked schedule is frozen: it always reports its (already reduced)
+    ///      `totalAmount`, regardless of `at`. Without this branch the elapsed-time
+    ///      fraction would be applied a second time to the frozen amount.
     function _vested(Schedule storage s, uint48 at) private view returns (uint256) {
+        if (s.revoked) return s.totalAmount;
         if (at < s.cliff) return 0;
         if (at >= s.start + s.duration) return s.totalAmount;
         return (s.totalAmount * (at - s.start)) / s.duration;
